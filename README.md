@@ -1,18 +1,29 @@
-### Cross Chain Rebase Token
+### ABOUT PROJECT
 
-1. Cross chain token standards
-2. Chainlink CCIP
-3. Create Rebase token
-4. Create Rebase token pool
-5. Create Vault
-   - Deposit ETH and receives rebase token
-   - Redeem rebase token for ETH
-   - Interest rate for each user based on some global interest rate.
-6. Cross chain messages and transfer
-7. Bridging and Tranching 
+1. An DeFi protocol that allow users to Deposit collateral into Vault and mint rebase token.
+2. And, redeeming rebase token for collateral.
+3. The protocol will enable users to transfer the tokens cross-chain using cross-chain token standard and chainlink CCIP
+4. The protocol also consist cross-chain Bridging for rebase tokens
+
+*change the about project section after finishing the project!!!*
 
 
 
+### Important functions and flow of protocol!!!
+
+1. **Creating Rebase token:**
+   - 
+
+2. **Creating Rebase tokens Vault Contract:**
+   - 
+
+3. **Cross-chain bridging:**
+   - 
+
+4. **CCIP and CROSS-CHAIN TOKEN STANDARD:**
+   - 
+
+5. **Pool contract:**
 
 ### Sources
 
@@ -24,5 +35,7 @@
 
 3. **What is Rebase token?**
    - https://koinly.io/blog/rebase-tokens-tax/
+   - https://cryptotaxcalculator.io/us/guides/rebase-tokens/
+   - 
 
 
