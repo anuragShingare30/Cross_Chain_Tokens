@@ -34,8 +34,5 @@
    - https://docs.chain.link/ccip/concepts#overview 
 
 3. **What is Rebase token?**
-   - https://koinly.io/blog/rebase-tokens-tax/
    - https://cryptotaxcalculator.io/us/guides/rebase-tokens/
-   - 
-
-
+   - https://kauri.finance/academy/what-are-rebase-tokens

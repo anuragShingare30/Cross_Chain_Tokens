@@ -28,13 +28,22 @@ contract RebaseToken is ERC20,Ownable {
 
     // events
     event RebaseToken_InterestRateSet(uint256 oldValue,uint256 newValue);
+    event RebaseToken_TokenMinted(address _to, uint256 _amount);
 
     // modifiers
 
     // External functions 
     constructor() ERC20("Rebase Token","RBT") Ownable(msg.sender){}
 
+    /** 
+        @notice principleBalance function
+        @dev The function will return the principle balance/total supply of tokens of user from our parent contract
+    */
+    function principleBalance(address _user) external returns(uint256){
+        return super.balanceOf(_user);
+    }
 
+    
     /** 
         @notice setInterestRate function
         @dev This function set the new global interest rate for users
@@ -60,7 +69,75 @@ contract RebaseToken is ERC20,Ownable {
         mintAccruedInterest(_to);
         s_UsersInterestRate[_to] = s_interestRate;
         _mint(_to, _amount);
+
+        emit RebaseToken_TokenMinted(_to, _amount);
     }
+
+    /** 
+        @notice burnToken function
+        @param _from Address of user from which tokens will burn
+        @param _amount amount to mint
+        @dev this function decreases the total supply
+    */
+    function burnToken(address _from, uint256 _amount) external {
+        // Transferring or burning Full Balance of user when _amount -> (uint256.max)
+        // type(uint256)max -> maximum possible value of uint256
+        if(_amount == type(uint256).max){
+            _amount = balanceOf(_from);
+        }
+        mintAccruedInterest(_from);
+        _burn(_from, _amount);
+    }
+
+    /** 
+        @notice transfer function
+        @param _to receiver's address
+        @param _amount amount to transfer
+        @return Success returns if transfer is valid or not!!!
+        @dev Function transfers _amount of token from caller to _to
+    */
+    function transfer(address _to,uint256 _amount) public override returns(bool){
+        if(_amount == type(uint256).max){
+            _amount = balanceOf(msg.sender);
+        }
+        // this will mint the users their token
+        // this mint function keep the users balance upto date!!!
+        mintAccruedInterest(msg.sender);
+        mintAccruedInterest(_to);
+
+        // if user has not deposited into the protocol. their interest rate will be same as of caller's interest rate
+        if(balanceOf(_to) == 0){
+            s_UsersInterestRate[_to] = s_UsersInterestRate[msg.sender];
+        }
+
+        return super.transfer(_to,_amount);
+    }
+
+    /** 
+        @notice transferFrom function
+        @param _to receiver's address
+        @param _amount amount to transfer
+        @return Success returns if transfer is valid or not!!!
+        @dev Function transfers _amount of token from caller to _to
+    */
+    function transferFrom(address _from,address _to,uint256 _amount) public override returns(bool){
+        // check the _amount for max amount of uint256
+        if(_amount == type(uint256).max){
+            _amount = balanceOf(_from);
+        }
+        // update the balance of both caller and sender
+        mintAccruedInterest(_from);
+        mintAccruedInterest(_to);
+
+        // if _to has not deposited/mint previoulsy.
+        // set the _to interest rate will be same as _from interest rate
+        if(balanceOf(_to) == 0){
+            s_UsersInterestRate[_to] = s_UsersInterestRate[_from];
+        }
+        return super.transferFrom(_from,_to,_amount);
+    }
+
+
 
     /** 
         @notice balanceOf function
@@ -103,13 +180,17 @@ contract RebaseToken is ERC20,Ownable {
         @dev mintAccruedInterest() will mint rebase token after the supply has been increased!!!
      */
     function mintAccruedInterest(address _user) internal {
+        // the main principle balance without the interest rate!!!
         uint256 previousPrincipleBalance = super.balanceOf(_user);
+
+        // the balance of user since last time they call the internal mint function
+        // with some interest rate
         uint256 currentBalance = balanceOf(_user);
 
         // incresedBalance will be the number of token we need to mint more!!!
         uint256 incresedBalance = currentBalance - previousPrincipleBalance;
 
-        // mint increased token
+        // Mint the number of tokens that need to be minted
         _mint(_user, incresedBalance);
 
         // update the users time stamp during minting
