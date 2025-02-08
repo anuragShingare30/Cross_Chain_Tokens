@@ -64,6 +64,9 @@ contract Vault {
 
     /**
         @notice redeemCollateral function
+        @param _amount Amount of Tokens user wants to burn
+        @notice burn the tokens from user
+        @notice Send the equivalent amount of ETH to user
         @dev Users will redeem their tokens for collateral
     */
     function redeemCollateral(uint256 _amount) external payable{
@@ -73,8 +76,9 @@ contract Vault {
         if(_amount == type(uint256).max){
             _amount = i_rebaseToken.balanceOf(msg.sender);
         }
-        i_rebaseToken.burnToken(msg.sender, msg.value); 
-
+        
+        i_rebaseToken.burnToken(msg.sender, _amount); 
+        // low-level call prefered over transfer method
         (bool success,) = payable(msg.sender).call{value: _amount}("");
         if(!success){
             revert Vault_TransactionFailed_RedeemCollateral();
@@ -88,8 +92,8 @@ contract Vault {
     // EXTERNAL VIEW FUNCTIONS //
     ///////////////////////////////////
 
-    function getTokenAddress() external view returns(IRebaseToken){
-        return i_rebaseToken;
+    function getTokenAddress() external view returns(address){
+        return address(i_rebaseToken);
     }
 
 

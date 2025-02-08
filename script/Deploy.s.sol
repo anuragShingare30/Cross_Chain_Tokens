@@ -11,18 +11,16 @@ contract DeployToken is Script{
 
     IRebaseToken i_rebaseToken;
 
-    function setUp(address _tokenAddress) public returns(RebaseToken rebaseToken,Vault vault){
+    function setUp() public returns(RebaseToken rebaseToken,Vault vault){
         vm.startBroadcast();
         RebaseToken rebaseToken = new RebaseToken();
-        Vault vault = new Vault(IRebaseToken(_tokenAddress));
+        Vault vault = new Vault(IRebaseToken(address(rebaseToken)));
         vm.stopBroadcast();
 
         return (rebaseToken,vault);
     }
 
     function run() external returns(RebaseToken,Vault){
-        address _tokenAddress;
-        // address getMostRecentDeployedContractAddress;
-        return setUp(_tokenAddress);
+        return setUp();
     }
 }

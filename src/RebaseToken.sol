@@ -39,7 +39,7 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
     ///////////////////////////////////
     // STATE VARIABLES  //
     ///////////////////////////////////
-    uint256 private s_interestRate;
+    uint256 private s_interestRate = 5e10;
     uint256 public constant SCALE_FACTOR = 1e18;
     bytes32 public constant MINT_BURN_ROLE = keccak256("MINT_BURN_ROLE");
 
@@ -75,6 +75,7 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
     /** 
         @notice principleBalance function
         @dev The function will return the principle balance/total supply of tokens of user from our parent contract
+        @dev total supply of tokens of user. This is called to our parent contract ERC20
     */
     function principleBalance(address _user) public view returns(uint256){
         return super.balanceOf(_user);
@@ -202,11 +203,14 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
         @notice Calculate the interest that has accumulated since the last update!!!
         @param _user receiver address
         @return linearInterest users linearlly growing interest rate
+        @notice linearInterest of user will grow after some minting activity.
+        @notice Pass some days to see the difference in interest rate of user!!!
     */
     function _calculateUserAccumulatedInterestRateSinceLastTime(address _user) internal view returns(uint256 linearInterest){
         uint256 timeDifference = block.timestamp - s_UserLastTimeStamp[_user];
         // linearInterest -> linear growth over time
         // 1 + (UserInterestRate + timeDifference)
+        // This will returns the interest rate for the user based on the previous minting activity
         linearInterest = (timeDifference * s_UsersInterestRate[_user]) + SCALE_FACTOR;
     }
 
@@ -218,7 +222,7 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
         @dev If totalSupply of token increases daily, the uesrs debt will also increases daily by some x%
         @dev _mintAccruedInterest() will mint rebase token after the supply has been increased!!!
         @dev This function increased the users balance by some linearlly growing interrest rate of users\
-        @dev Interest rate of user grows linearlly depending on the minting activity of user
+        @dev Interest rate of user will grow linearlly when they will start minting
      */
     function _mintAccruedInterest(address _user) internal {
         // the main principle balance without the interest rate!!!
@@ -249,4 +253,7 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
     function getUserInterestRate(address _user) public view returns(uint256) {
         return s_UsersInterestRate[_user];
     }   
+    function getUserInterestRateAccordingToActivity(address _user) public view returns(uint256) {
+        return _calculateUserAccumulatedInterestRateSinceLastTime(_user);
+    }
 }
