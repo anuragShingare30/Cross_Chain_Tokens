@@ -60,7 +60,9 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
     // EXTERNAL SENDER FUNCTION  //
     ///////////////////////////////////
 
-    constructor() ERC20("Rebase Token","RBT") Ownable(msg.sender){}
+    constructor() ERC20("Rebase Token","RBT") Ownable(msg.sender){
+        
+    }
 
     /** 
         @notice grantAccessToMintAndBurnToken function

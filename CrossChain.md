@@ -97,6 +97,9 @@
 
 
 
+
+
+
 ### Cross Chain Interoperability Protocol (CCIP)
 
 
@@ -117,12 +120,13 @@
 
 #### How Does Chainlink CCIP Work?
 
-- CCIP uses `Decentralized oracle networks(DON) and Risk Management Network(RMN)` to check the security and transparency across blockchain
+- CCIP uses `Decentralized oracle networks(DON) and Risk Management Network(RMN)` to check the security and transparency to validate the data or message across blockchain!!!!
+- CCIP also inclide `rate limits` for transferring data/assets for security.
 - This acts as validators and message relayers between blockchains
 
 
 1. **User Requests Cross-Chain Action**:
-   - A smart contract on Blockchain A wants to send tokens or data to Blockchain B.
+   - A smart contract on Blockchain-A wants to send tokens or data to Blockchain-B.
    - The contract sends a request to CCIP
 
 2. **Chainlink Oracles Validate & Relay Data**:
@@ -135,7 +139,7 @@
 
 4. **Final Confirmation & Execution**: 
    - Blockchain B confirms the transaction
-   - And, executes the requested function (Ex: unlocking tokens, updating records, etc.).
+   - And, executes the requested function (Ex: unlocking tokens, updating records, etc.)
 
 
 
@@ -143,29 +147,33 @@
 
 
 1. **Arbitrary Messaging**
-   - is the ability to send arbitrary data (encoded as bytes) to a receiving smart contract on a different blockchain.
+   - is the ability to `send arbitrary data (encoded as bytes)` to a receiving smart contract on a different blockchain.
    - Send msg from one contract on one chain to other contract on diff chain
 
 2. **Token Transfer**:
-   - You can transfer tokens to a smart contract or directly to an metamask wallet on a different blockchain. 
+   - You can transfer tokens to a smart contract or directly to an metamask wallet(EOA) on a different blockchain. 
 
 3. **Programmable Token Transfer**:
-   - simultaneously transfer tokens and arbitrary data (encoded as bytes) within a single transaction
+   - simultaneously `transfer tokens and arbitrary data (encoded as bytes)` within a single transaction
    - Data can be instructions on what to do with those tokens.
 
 
 
 #### SUMMARY for CCIP
 
-- **CCIP is basically performing blockchain bridging in more secure,decentralized and transparent way!!!**
+- **CCIP is basically `performing blockchain bridging` in more secure,decentralized and transparent way!!!**
 - It works on DON and RMN  which relay and validate cross-chain messages.
 - It enables token transfers, smart contract interactions, and seamless multi-chain applications.
 - It's more secure than traditional bridges
 - **CCIP is like an advanced version of blockchain bridges, but built for security, scalability, and true interoperability!!!**
 
 
+**forge install smartcontractkit/ccip@v2.17.0-ccip1.5.16**
 
-### Cross Chain Token Standard (CCT)
 
-- An token standard that leverges the chainlink CCIP for transfering data across different blockchain network.
-- chainlink CCT provides audited pool contract for token that contains all important functions
+
+### Cross Chain Token-Standard (CCT)
+
+- **An token standard that leverges the chainlink CCIP for transfering data across different blockchain network.**
+- `CCT` is built on Chainlink `CCIP` to enable `seamless movement of tokens` between different blockchains without needing custom bridges.
+- 
