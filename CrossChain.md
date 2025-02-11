@@ -98,48 +98,40 @@
 
 
 
+### Cross Chain Token(CCT) Standard (defines flow)
+
+- **A `Cross-Chain Token Standard` is a set of rules that ensures tokens can move between different blockchains safely and efficiently by leveraging the chainlink CCIP for security**
+- `Cross-chain token standards` are just set of rules and instructions that should be followed during transferring tokens cross chain.
+
+**Example**: A stablecoin that seamlessly moves between Ethereum and Polygon.
+
+- Ensures all tokens moving across chains follow the same secure protocol.
+- `CCT standard` provides different mechanism for transferring tokens like `burn/mint, lock/unlock`
+
+
 
 
 ### Cross Chain Interoperability Protocol (CCIP)
 
 
-- `Chainlink CCIP (Cross-Chain Interoperability Protocol)` is a system that allows smart contracts to communicate and `transfer data/tokens` across multiple blockchains
+- `Chainlink CCIP` is a system/process that allows smart contracts to `transfer data/assets/tokens` cross-chain
 - `CCIP is the bridge` that connects separate blockchains, allowing them to exchange information securely and efficiently.
-- **Note**: CCIP is performing blockchain bridging in more secure and efficient way as compare to traditional  blockchain bridging!!!
+- It uses `defense-in-depth security` for transfering data/assets cross chain
+- `CCIP` uses **Decentralized Oracle network(DON) and Risk management network(RMN)** to check security and transparency for transfering data
+- CCIP also inclide `rate limits` for transferring data/assets for security.
+
+**Note: CCIP is performing blockchain bridging in more secure and efficient way as compare to traditional  blockchain bridging!!!**
+
+
 
 
 #### Why Do We Need Chainlink CCIP?
 
 - Ethereum, Binance Smart Chain, and Solana cannot directly exchange tokens or data.
-- Traditional blockchain bridges are more centralized and need trust on third parties.
+- Traditional blockchain bridges are more `centralized` and need trust on third parties.
 - Smart contracts are locked to their chain and cannot access data from other chains.
 
-
 **CCIP solves this by providing a universal, decentralized, and secure way for blockchains to interact with each other**
-
-
-#### How Does Chainlink CCIP Work?
-
-- CCIP uses `Decentralized oracle networks(DON) and Risk Management Network(RMN)` to check the security and transparency to validate the data or message across blockchain!!!!
-- CCIP also inclide `rate limits` for transferring data/assets for security.
-- This acts as validators and message relayers between blockchains
-
-
-1. **User Requests Cross-Chain Action**:
-   - A smart contract on Blockchain-A wants to send tokens or data to Blockchain-B.
-   - The contract sends a request to CCIP
-
-2. **Chainlink Oracles Validate & Relay Data**:
-   - A network of decentralized oracles verifies the request.
-   - They ensure the transaction is valid, secure, and fraud-proof.
-
-3. **CCIP Sends Data to the Target Blockchain**:
-   - After validation, CCIP relays the message or token transfer to Blockchain B.
-   - Blockchain B receives the message and executes the smart contract action.
-
-4. **Final Confirmation & Execution**: 
-   - Blockchain B confirms the transaction
-   - And, executes the requested function (Ex: unlocking tokens, updating records, etc.)
 
 
 
@@ -159,11 +151,39 @@
 
 
 
+#### Transferring tokens cross-chain!!!
+
+- Here, we will allow our token on CCIP for transferring cross-chain
+- We will follow `burn and mint mechanism` for transferring
+- Burn token -> source chain
+- Mint token -> destination chain
+
+
+1. **Deploying Tokens**:
+   - Deploy your ERC20 compatible token on 1st chain
+
+2. **Deploying Token Pools**:
+   - Once your tokens are deployed, you will deploy Pool contract on 1st and 2nd chain
+   - Each token will be linked to a pool, which will manage token transfers and ensure proper handling of assets across chains.
+
+3. **Claiming Mint and Burn Roles**:
+
+4. **Linking Tokens to Pools**:
+
+5. **Minting Tokens**:
+   - Mint the token on 1st chain
+   - later be used to test cross-chain transfers
+
+6. **Transferring Tokens**:
+   - Finally transfer the minted token from 1st chain to 2nd chain using `CCIP`
+
+
+
 #### SUMMARY for CCIP
 
 - **CCIP is basically `performing blockchain bridging` in more secure,decentralized and transparent way!!!**
-- It works on DON and RMN  which relay and validate cross-chain messages.
-- It enables token transfers, smart contract interactions, and seamless multi-chain applications.
+- It works on `DON and RMN`  which relay and validate cross-chain messages.
+- It enables `token transfers, smart contract interactions, and seamless multi-chain applications.`
 - It's more secure than traditional bridges
 - **CCIP is like an advanced version of blockchain bridges, but built for security, scalability, and true interoperability!!!**
 
@@ -172,8 +192,15 @@
 
 
 
-### Cross Chain Token-Standard (CCT)
 
-- **An token standard that leverges the chainlink CCIP for transfering data across different blockchain network.**
-- `CCT` is built on Chainlink `CCIP` to enable `seamless movement of tokens` between different blockchains without needing custom bridges.
+
+### Pool contract
+
+- **These pool contract are essential for minting and burning tokens during cross-chain transfers.**
+- Each token will be linked to a pool ,which will manage token transfers and ensure proper handling of assets across chains.
+- Pool contract will be granted access for minting and burning during cross-chain transfers.
+- Will follow `burnAndMint mechanism` where 
+  - burn tokens -> source chain
+  - mint token -> destination chain
+
 - 

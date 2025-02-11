@@ -36,3 +36,6 @@
 3. **What is Rebase token?**
    - https://cryptotaxcalculator.io/us/guides/rebase-tokens/
    - https://kauri.finance/academy/what-are-rebase-tokens
+
+4. **An complete overview of transferring token cross-chain**:
+   - https://docs.chain.link/ccip/tutorials/cross-chain-tokens/register-from-eoa-burn-mint-foundry#overview 
