@@ -202,5 +202,3 @@
 - Will follow `burnAndMint mechanism` where 
   - burn tokens -> source chain
   - mint token -> destination chain
-
-- 
