@@ -96,6 +96,7 @@ contract CrossChainTest is Test {
         );
         tokenAdminRegistryEthSepolia.acceptAdminRole(address(ethSepoliaToken));
 
+
         // LINK TOKEN TO POOL
         tokenAdminRegistryEthSepolia.setPool(
             address(ethSepoliaToken),
@@ -104,6 +105,10 @@ contract CrossChainTest is Test {
 
         // CONFIGURE TOKEN POOL ON SEPOLIA
         vm.stopPrank();
+
+
+
+
 
         // DEPLOY TOKEN AND POOL CONTRACT ON BASE SEPOLIA
         vm.selectFork(baseSepoliaFork);
@@ -281,7 +286,8 @@ contract CrossChainTest is Test {
         });
         vm.stopPrank();
 
-        // Give the user the fee amount of LINK
+        // Give the user the fee amount in LINK
+        // Because of prank the ccipSend function can mess up little bit!!!
         ccipLocalSimulatorFork.requestLinkFromFaucet(
             user, IRouterClient(localNetworkDetails.routerAddress).getFee(remoteNetworkDetails.chainSelector, message)
         );
@@ -305,6 +311,9 @@ contract CrossChainTest is Test {
         assert(balanceOfUserAfterBridging_Sepolia == balanceOfUserBeforeBridging_Sepolia - amountToBridge);
         vm.stopPrank();
 
+
+
+
         vm.selectFork(remoteForkId);
         // lets assume that bridging would take 15-20 minutes to bridge the tokens from source to destination
         vm.warp(block.timestamp + 15 minutes);
@@ -312,6 +321,8 @@ contract CrossChainTest is Test {
         uint256 initialBalance_BaseSepolia = IRebaseToken(address(remoteToken)).balanceOf(user);
         console.log("initialBalance_BaseSepolia",initialBalance_BaseSepolia);
 
+        // By this method we are changing the fork to base sepolia
+        // This function will change the fork to base sepolia and also receive the message send cross-chain
         ccipLocalSimulatorFork.switchChainAndRouteMessage(remoteForkId);
         uint256 afterBridgingBalance_BaseSepolia = IRebaseToken(address(remoteToken)).balanceOf(user);
         console.log(afterBridgingBalance_BaseSepolia);
@@ -328,18 +339,17 @@ contract CrossChainTest is Test {
         vm.selectFork(ethSepoliaFork);
         // Pretend a user is interacting with the protocol
         // Give the user some ETH
-        uint256 amount = 100 ether;
+        uint256 amount = 1e5;
         vm.deal(user, amount);
-
         vm.startPrank(user);
-
         // deposit eth and recieve tokens
-        vault.depositCollateral{value:amount}();
-
+        Vault(payable(address(vault))).depositCollateral{value:amount}();
         vm.stopPrank();
+        uint256 userBalance = ethSepoliaToken.balanceOf(user);
+        assert(userBalance == amount);
 
-        // bridge tokens
-        bridgeToken(100, ethSepoliaFork, baseSepoliaFork, ethSepoliaNetworkDetails, baseSepoliaNetworkDetails, ethSepoliaToken, baseSepoliaToken);
+        // Here we are bridging tokens from ethSepolia to base sepolia
+        bridgeToken(amount, ethSepoliaFork, baseSepoliaFork, ethSepoliaNetworkDetails, baseSepoliaNetworkDetails, ethSepoliaToken, baseSepoliaToken);
         
     }
 }
