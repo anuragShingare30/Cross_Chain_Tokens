@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import {Test, console} from "lib/forge-std/src/Test.sol";
+import {Test, console,Vm} from "lib/forge-std/src/Test.sol";
 import {RebaseToken} from "src/RebaseToken.sol";
 import {Vault} from "src/Vault.sol";
-import {DeployToken} from "script/Deploy.s.sol";
+// import {DeployToken} from "script/Deploy.s.sol";
 import "src/interfaces/IRebaseToken.sol";
-import "lib/forge-std/src/Vm.sol";
 
 /**
  * @title Testing Rebase token and Vault contract together
  * @author anurag shingare
  * @dev The flow of protocol will be as:
-    a. owner of token will grant the access to vault contract to mint and burn the tokens
-    b. 
+    
  */
 
 contract RebaseTokenTest is Test{

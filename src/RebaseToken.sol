@@ -33,7 +33,7 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
     // TYPE DECLARATION  //
     ///////////////////////////////////
     mapping (address user => uint256 usersInterestRate) private s_UsersInterestRate;
-    mapping (address user => uint256 lastTimeUsersUpdate) private s_UserLastTimeStamp;
+    mapping (address user => uint256 lastTimeUsersUpdate) private s_UserLastTimeStamp; 
 
 
     ///////////////////////////////////
@@ -111,7 +111,7 @@ contract RebaseToken is ERC20,Ownable,AccessControl {
         _mint(_to, _amount);
 
         emit RebaseToken_TokenMinted(_to, _amount);
-    }
+    }  
 
     /** 
         @notice burnToken function

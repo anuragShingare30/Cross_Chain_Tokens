@@ -20,9 +20,11 @@ contract CrossChainTest is Test {
     address user = makeAddr("user");
     CCIPLocalSimulatorFork public ccipLocalSimulatorFork;
 
+    // fork id for the source and destination chain
     uint256 ethSepoliaFork;
     uint256 baseSepoliaFork;
 
+    // network details for chain
     Register.NetworkDetails ethSepoliaNetworkDetails;
     Register.NetworkDetails baseSepoliaNetworkDetails;
 
@@ -45,7 +47,12 @@ contract CrossChainTest is Test {
     // contract instance for vault contract
     Vault vault;
 
+
     function setUp() public {
+        // this declaration defines that anybody can bridge token
+        address[] memory allowlist = new address[](0);
+
+        // set the fork id for chain
         string memory ETHEREUM_SEPOLIA_RPC_URL = vm.envString(
             "ETHEREUM_SEPOLIA_RPC_URL"
         );
@@ -55,18 +62,25 @@ contract CrossChainTest is Test {
         ethSepoliaFork = vm.createSelectFork(ETHEREUM_SEPOLIA_RPC_URL);
         baseSepoliaFork = vm.createFork(BASE_SEPOLIA_RPC_URL);
 
+
         ccipLocalSimulatorFork = new CCIPLocalSimulatorFork();
         vm.makePersistent(address(ccipLocalSimulatorFork));
 
-        // DEPLOY TOKEN AND POOL CONTRACT ON SEPOLIA
-        // GET THE NETWORK DETAILS FOR BASE SEPOLIA
+
+        ////////////////////////////// 
+        // DEPLOY TOKEN AND POOL CONTRACT ON ETH SEPOLIA //
+        ////////////////////////////// 
+
+        // GET THE NETWORK DETAILS FOR ETH SEPOLIA
         ethSepoliaNetworkDetails = ccipLocalSimulatorFork.getNetworkDetails(
             block.chainid
         );
-        address[] memory allowlist = new address[](0);
+        vm.selectFork(ethSepoliaFork);
         vm.startPrank(owner);
+
         // DEPLOY TOKEN CONTRACT ON SEPOLIA
         ethSepoliaToken = new RebaseToken();
+
         // DEPLOY POOL CONTRACT ON SEPOLIA
         ethSepoliaPool = new RebaseTokenPool(
             IERC20(address(ethSepoliaToken)),
@@ -78,15 +92,18 @@ contract CrossChainTest is Test {
         // DEPLOY THE VAULT CONTRACT PASS THE TOKEN ADDRESS
         vault = new Vault(IRebaseToken(address(ethSepoliaToken)));
 
-        // GRANT MINT AND BURN ROLE TO VAULT AND POOL
-        ethSepoliaToken.grantAccessToMintAndBurnToken(address(vault));
+        // ADD SOME REWARDS TO VAULT CONTRACT
+        vm.deal(address(vault), 1 ether);
+
+        // GRANT MINT AND BURN ROLE TO VAULT AND POOL CONTRACT
         ethSepoliaToken.grantAccessToMintAndBurnToken(address(ethSepoliaPool));
+        ethSepoliaToken.grantAccessToMintAndBurnToken(address(vault));
 
         // CLAIM ADMIN ROLE
         registryModuleOwnerCustomEthSepolia = RegistryModuleOwnerCustom(
             ethSepoliaNetworkDetails.registryModuleOwnerCustomAddress
         );
-        registryModuleOwnerCustomEthSepolia.registerAdminViaGetCCIPAdmin(
+        registryModuleOwnerCustomEthSepolia.registerAdminViaOwner(
             address(ethSepoliaToken)
         );
 
@@ -96,7 +113,6 @@ contract CrossChainTest is Test {
         );
         tokenAdminRegistryEthSepolia.acceptAdminRole(address(ethSepoliaToken));
 
-
         // LINK TOKEN TO POOL
         tokenAdminRegistryEthSepolia.setPool(
             address(ethSepoliaToken),
@@ -104,21 +120,28 @@ contract CrossChainTest is Test {
         );
 
         // CONFIGURE TOKEN POOL ON SEPOLIA
+        // configureTokenPool(ethSepoliaFork, ethSepoliaPool, baseSepoliaPool, IRebaseToken(address(baseSepoliaToken)), baseSepoliaNetworkDetails);
         vm.stopPrank();
 
 
 
 
 
-        // DEPLOY TOKEN AND POOL CONTRACT ON BASE SEPOLIA
+        ////////////////////////////// 
+        // DEPLOY TOKEN AND POOL CONTRACT ON BASE SEPOLIA //
+        ////////////////////////////// 
+
         vm.selectFork(baseSepoliaFork);
+        vm.startPrank(owner);
+
         // GET THE NETWORK DETAILS FOR BASE SEPOLIA
         baseSepoliaNetworkDetails = ccipLocalSimulatorFork.getNetworkDetails(
             block.chainid
         );
-        vm.startPrank(owner);
+
         // DEPLOY TOKEN CONTRACT
         baseSepoliaToken = new RebaseToken();
+
         // DEPLOY POOL CONTRACT
         baseSepoliaPool = new RebaseTokenPool(
             IERC20(address(baseSepoliaToken)),
@@ -128,7 +151,6 @@ contract CrossChainTest is Test {
         );
 
         // GRANT MINT AND ADMIN ROLE
-        baseSepoliaToken.grantAccessToMintAndBurnToken(address(vault));
         baseSepoliaToken.grantAccessToMintAndBurnToken(
             address(baseSepoliaPool)
         );
@@ -137,7 +159,7 @@ contract CrossChainTest is Test {
         registryModuleOwnerCustomBaseSepolia = RegistryModuleOwnerCustom(
             baseSepoliaNetworkDetails.registryModuleOwnerCustomAddress
         );
-        registryModuleOwnerCustomBaseSepolia.registerAdminViaGetCCIPAdmin(
+        registryModuleOwnerCustomBaseSepolia.registerAdminViaOwner(
             address(baseSepoliaToken)
         );
 
@@ -156,6 +178,7 @@ contract CrossChainTest is Test {
         );
 
         // CONFIGURE TOKEN POOL ON BASE SEPOLIA
+        // configureTokenPool(baseSepoliaFork, baseSepoliaPool, ethSepoliaPool, IRebaseToken(address(ethSepoliaToken)), ethSepoliaNetworkDetails);
         vm.stopPrank();
     }
 
@@ -172,12 +195,18 @@ contract CrossChainTest is Test {
 
         // CONFIGURE TOKEN POOL
         TokenPool.ChainUpdate[] memory chains = new TokenPool.ChainUpdate[](1);
-        bytes memory remotePoolAddressEthSepolia = abi.encodePacked(
+        // bytes memory remotePoolAddressEthSepolia = new bytes(1);
+        bytes memory remotePoolAddressEthSepolia = abi.encode(
             address(remotePool)
         );
+        // Here, CCIP will check for:
+        // ChainAlreadyExists error -> if we configure token pool twice for same chainId
+        // NonExistentChain error -> if allowed is false
+        // CursedByRMN error -> if malicious block is present in node
         chains[0] = TokenPool.ChainUpdate({
             remoteChainSelector: remoteNetworkDetail.chainSelector,
-            allowed: true,
+            // allowed: false,
+            allowed: true, // ensures whether the chain should be enabled or not
             remotePoolAddress: remotePoolAddressEthSepolia,
             remoteTokenAddress: abi.encode(address(remoteToken)),
             outboundRateLimiterConfig: RateLimiter.Config({
@@ -193,65 +222,6 @@ contract CrossChainTest is Test {
         });
         TokenPool(localPool).applyChainUpdates(chains);
         vm.stopPrank();
-    }
-
-    function test_BridgeToken() public {
-        vm.selectFork(ethSepoliaFork);
-        address linkSepolia = ethSepoliaNetworkDetails.linkAddress;
-        ccipLocalSimulatorFork.requestLinkFromFaucet(address(user), 20 ether);
-
-        uint256 amountToSend = 100;
-        Client.EVMTokenAmount[] memory tokenToSendDetails = new Client.EVMTokenAmount[](1);
-        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
-            token: address(ethSepoliaToken),
-            amount: amountToSend
-        });
-        tokenToSendDetails[0] = tokenAmount;
-
-        vm.startPrank(user);
-
-        ethSepoliaToken.mintToken(address(user), amountToSend);
-        // vault.depositCollateral{value:amountToSend}();
-
-        ethSepoliaToken.approve(
-            ethSepoliaNetworkDetails.routerAddress,
-            amountToSend
-        );
-        IERC20(linkSepolia).approve(
-            ethSepoliaNetworkDetails.routerAddress,
-            20 ether
-        );
-
-        uint256 balanceOfUserBeforeBridging_Sepolia = ethSepoliaToken.balanceOf(user);
-        console.log("balanceOfUserBeforeBridging_Sepolia:",balanceOfUserBeforeBridging_Sepolia);
-
-        IRouterClient routerEthSepolia = IRouterClient(
-            ethSepoliaNetworkDetails.routerAddress
-        );
-        routerEthSepolia.ccipSend(
-            baseSepoliaNetworkDetails.chainSelector,
-            Client.EVM2AnyMessage({
-                receiver: abi.encode(address(user)),
-                data: "",
-                tokenAmounts: tokenToSendDetails,
-                extraArgs: Client._argsToBytes(
-                    Client.EVMExtraArgsV1({gasLimit: 0})
-                ),
-                feeToken: linkSepolia
-            })
-        );
-
-        uint256 balanceOfUserAfterBridging_Sepolia = ethSepoliaToken.balanceOf(user);
-        console.log("balanceOfUserAfterBridging_Sepolia:",balanceOfUserAfterBridging_Sepolia);
-        vm.stopPrank();
-
-        assert(balanceOfUserAfterBridging_Sepolia == balanceOfUserBeforeBridging_Sepolia - amountToSend);
-
-        ccipLocalSimulatorFork.switchChainAndRouteMessage(baseSepoliaFork);
-
-        uint256 balanceOfUserAfterBridging_BaseSepolia = baseSepoliaToken.balanceOf(user);
-        console.log("balanceOfUserAfterBridging_BaseSepolia",balanceOfUserAfterBridging_BaseSepolia);
-        assert(balanceOfUserAfterBridging_BaseSepolia == amountToSend);
     }
 
 
@@ -313,24 +283,23 @@ contract CrossChainTest is Test {
 
 
 
-
         vm.selectFork(remoteForkId);
         // lets assume that bridging would take 15-20 minutes to bridge the tokens from source to destination
-        vm.warp(block.timestamp + 15 minutes);
+        vm.warp(block.timestamp + 900);
 
         uint256 initialBalance_BaseSepolia = IRebaseToken(address(remoteToken)).balanceOf(user);
-        console.log("initialBalance_BaseSepolia",initialBalance_BaseSepolia);
+        console.log("initialBalance_BaseSepolia: ",initialBalance_BaseSepolia);
 
         // By this method we are changing the fork to base sepolia
         // This function will change the fork to base sepolia and also receive the message send cross-chain
         ccipLocalSimulatorFork.switchChainAndRouteMessage(remoteForkId);
         uint256 afterBridgingBalance_BaseSepolia = IRebaseToken(address(remoteToken)).balanceOf(user);
-        console.log(afterBridgingBalance_BaseSepolia);
+        console.log("afterBridgingBalance_BaseSepolia", afterBridgingBalance_BaseSepolia);
 
         assert(afterBridgingBalance_BaseSepolia == initialBalance_BaseSepolia + amountToBridge);
     }
 
-    function test_BridgeTokensFirst() public {
+    function test_BridgeTokens() public {
         // CONFIGURE TOKEN POOL ON SEPOLIA
         configureTokenPool(ethSepoliaFork, ethSepoliaPool, baseSepoliaPool, IRebaseToken(address(baseSepoliaToken)), baseSepoliaNetworkDetails);
         // CONFIGURE TOKEN POOL ON BASE SEPOLIA
@@ -339,17 +308,53 @@ contract CrossChainTest is Test {
         vm.selectFork(ethSepoliaFork);
         // Pretend a user is interacting with the protocol
         // Give the user some ETH
-        uint256 amount = 1e5;
-        vm.deal(user, amount);
+        // we will bridge 'amount' of amount!!!
+        uint256 amount = 1e18;
         vm.startPrank(user);
+        vm.deal(user, amount);
+
         // deposit eth and recieve tokens
         Vault(payable(address(vault))).depositCollateral{value:amount}();
         vm.stopPrank();
-        uint256 userBalance = ethSepoliaToken.balanceOf(user);
+
+        uint256 userBalance = IRebaseToken(address(ethSepoliaToken)).balanceOf(user);
         assert(userBalance == amount);
 
         // Here we are bridging tokens from ethSepolia to base sepolia
         bridgeToken(amount, ethSepoliaFork, baseSepoliaFork, ethSepoliaNetworkDetails, baseSepoliaNetworkDetails, ethSepoliaToken, baseSepoliaToken);
-        
+    }
+
+    function test_BridgeTokenBack() public {
+        // configure token pool on sepolia
+        configureTokenPool(ethSepoliaFork, ethSepoliaPool, baseSepoliaPool, IRebaseToken(address(baseSepoliaToken)), baseSepoliaNetworkDetails);
+        // configure token pool on sepolia
+        configureTokenPool(baseSepoliaFork, baseSepoliaPool, ethSepoliaPool, IRebaseToken(address(ethSepoliaToken)), ethSepoliaNetworkDetails);
+
+        vm.selectFork(ethSepoliaFork);
+        uint256 amount = 1e18;
+        vm.startPrank(user);
+        vm.deal(user, amount);
+
+        Vault(payable(address(vault))).depositCollateral{value:amount}();
+        uint256 userBalance = IRebaseToken(address(ethSepoliaToken)).balanceOf(user);
+        assert(userBalance == amount);
+        vm.stopPrank();
+
+        // Bridge token from eth sepolia to base sepolia
+        bridgeToken(amount, ethSepoliaFork, baseSepoliaFork, ethSepoliaNetworkDetails, baseSepoliaNetworkDetails, ethSepoliaToken, baseSepoliaToken);
+
+
+        vm.selectFork(baseSepoliaFork);
+        uint256 amountN = 1e18;
+        vm.startPrank(user);
+        vm.deal(user, amount);
+        Vault(payable(address(vault))).depositCollateral{value:amount}();
+        uint256 userBalanceN = IRebaseToken(address(baseSepoliaToken)).balanceOf(user);
+        assert(userBalanceN == amountN);
+        vm.stopPrank();
+
+        // Again, check the bridging from base sepolia to eth sepolia
+        bridgeToken(amountN, baseSepoliaFork, ethSepoliaFork, baseSepoliaNetworkDetails, ethSepoliaNetworkDetails, baseSepoliaToken, ethSepoliaToken);
+
     }
 }
