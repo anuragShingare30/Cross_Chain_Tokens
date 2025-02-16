@@ -9,7 +9,7 @@ import {TokenPool} from "lib/ccip/contracts/src/v0.8/ccip/pools/TokenPool.sol";
 import {CCIPLocalSimulatorFork, Register} from "lib/chainlink-local/src/ccip/CCIPLocalSimulatorFork.sol";
 import {RateLimiter} from "lib/ccip/contracts/src/v0.8/ccip/libraries/RateLimiter.sol";
 
-contract DeployConfigurePool is Script{
+contract ConfigurePoolScript is Script{
     
     function run(
         RebaseTokenPool localPool,

@@ -14,7 +14,7 @@ import {TokenPool} from "lib/ccip/contracts/src/v0.8/ccip/pools/TokenPool.sol";
 
 
 
-contract DeployToken is Script{
+contract DeployTokenAndPool is Script{
 
     RebaseToken rebaseToken;
     RebaseTokenPool tokenPool;

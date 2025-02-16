@@ -330,10 +330,12 @@ contract CrossChainTest is Test {
         // configure token pool on sepolia
         configureTokenPool(baseSepoliaFork, baseSepoliaPool, ethSepoliaPool, IRebaseToken(address(ethSepoliaToken)), ethSepoliaNetworkDetails);
 
+
+        // bridging eth sepolia to base sepolia!!!
         vm.selectFork(ethSepoliaFork);
         uint256 amount = 1e18;
-        vm.startPrank(user);
         vm.deal(user, amount);
+        vm.startPrank(user);
 
         Vault(payable(address(vault))).depositCollateral{value:amount}();
         uint256 userBalance = IRebaseToken(address(ethSepoliaToken)).balanceOf(user);
@@ -344,17 +346,13 @@ contract CrossChainTest is Test {
         bridgeToken(amount, ethSepoliaFork, baseSepoliaFork, ethSepoliaNetworkDetails, baseSepoliaNetworkDetails, ethSepoliaToken, baseSepoliaToken);
 
 
+        // Bridging back tokens from base sepolia to eth sepolia!!!
         vm.selectFork(baseSepoliaFork);
-        uint256 amountN = 1e18;
-        vm.startPrank(user);
-        vm.deal(user, amount);
-        Vault(payable(address(vault))).depositCollateral{value:amount}();
+        vm.warp(block.timestamp + 3600);
         uint256 userBalanceN = IRebaseToken(address(baseSepoliaToken)).balanceOf(user);
-        assert(userBalanceN == amountN);
-        vm.stopPrank();
-
+        console.log("user destination balance on base sepolia before bridging it back: ", userBalanceN);
         // Again, check the bridging from base sepolia to eth sepolia
-        bridgeToken(amountN, baseSepoliaFork, ethSepoliaFork, baseSepoliaNetworkDetails, ethSepoliaNetworkDetails, baseSepoliaToken, ethSepoliaToken);
+        bridgeToken(userBalanceN, baseSepoliaFork, ethSepoliaFork, baseSepoliaNetworkDetails, ethSepoliaNetworkDetails, baseSepoliaToken, ethSepoliaToken);
 
     }
 }

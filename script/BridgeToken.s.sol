@@ -9,26 +9,32 @@ import {CCIPLocalSimulatorFork, Register} from "lib/chainlink-local/src/ccip/CCI
 import {IRouterClient} from "lib/ccip/contracts/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "lib/ccip/contracts/src/v0.8/ccip/libraries/Client.sol";
 
-contract DeployBridgeToken is Script{
+// check for network details -> If it's rendering wrongly replace it with hardcoded value!!!
 
+contract BridgeTokenScript is Script {
     function run(
         address recieverAddress,
+        address tokenToSendAddress,
         uint256 amountToBridge,
         Register.NetworkDetails memory localNetworkDetails,
         Register.NetworkDetails memory remoteNetworkDetails,
-        RebaseToken localToken,
-        RebaseToken remoteToken
+        RebaseToken localToken
     ) public {
-
         vm.startBroadcast();
 
-        Client.EVMTokenAmount[] memory tokenToSendDetails = new Client.EVMTokenAmount[](1);
-        Client.EVMTokenAmount memory tokenAmount =
-            Client.EVMTokenAmount({token: address(localToken), amount: amountToBridge});
+        Client.EVMTokenAmount[]
+            memory tokenToSendDetails = new Client.EVMTokenAmount[](1);
+        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
+            token: address(localToken),
+            amount: amountToBridge
+        });
         tokenToSendDetails[0] = tokenAmount;
 
         // approve the router to burn tokens on behalf of recieverAddress
-        IERC20(address(localToken)).approve(localNetworkDetails.routerAddress,amountToBridge);
+        IERC20(address(localToken)).approve(
+            localNetworkDetails.routerAddress,
+            amountToBridge
+        );
 
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
             receiver: abi.encode(recieverAddress), // we need to encode the address to bytes
@@ -38,11 +44,19 @@ contract DeployBridgeToken is Script{
             feeToken: localNetworkDetails.linkAddress // The token used to pay for the fee
         });
 
+        uint256 ccipFee = IRouterClient(localNetworkDetails.routerAddress).getFee(
+                remoteNetworkDetails.chainSelector,
+                message
+        );
         IERC20(localNetworkDetails.linkAddress).approve(
             localNetworkDetails.routerAddress,
-            IRouterClient(localNetworkDetails.routerAddress).getFee(remoteNetworkDetails.chainSelector, message)
+            ccipFee
         );
-        IRouterClient(localNetworkDetails.routerAddress).ccipSend(remoteNetworkDetails.chainSelector, message);
+        IERC20(tokenToSendAddress).approve(localNetworkDetails.routerAddress,amountToBridge);
+        IRouterClient(localNetworkDetails.routerAddress).ccipSend(
+            remoteNetworkDetails.chainSelector,
+            message
+        );
         vm.stopBroadcast();
     }
 }
