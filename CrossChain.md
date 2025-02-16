@@ -1,6 +1,5 @@
 ### What is Rebase tokens?
 
-
 **Rebase tokens are type of cryptocurrency that have a changing circulating supply, either growing larger (more coins being created/minted) or decreasing (coins get destroyed or 'burnt'), usually to maintain a stable price or achieve a specific target price.**
 
 

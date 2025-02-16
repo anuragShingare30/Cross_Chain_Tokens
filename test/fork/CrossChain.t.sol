@@ -15,6 +15,49 @@ import {RateLimiter} from "lib/ccip/contracts/src/v0.8/ccip/libraries/RateLimite
 import {IRouterClient} from "lib/ccip/contracts/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "lib/ccip/contracts/src/v0.8/ccip/libraries/Client.sol";
 
+
+/**
+ * @title CrossChainTest contract
+ * @author anurag shingare
+ * @notice In this test contract we will perform the complete steps from deploying tokens to bridging tokens cross-chain
+
+ * @dev The Complete start to end flow of this cross-chain bridging protocol is covered below:
+    1. Deploying Tokens (RebaseToken contract):
+        - Deploy token on eth-sepolia and base-sepolia
+        - This contract consist of ERC20 token standard contract
+        - Contract contains mintToken, burnToken, grantMintAndBurnRole functions
+        - minting-and-burning role will be provided to Vault and Pool contract
+        - We will increase the users balance by 0.5% per sec
+    2. Deploying Token Pools (RebaseTokenPool contract):
+        - Deploy pool contract on eth-sepolia and base-sepolia
+        - Contract will inheriting TokenPool contract standard from CCIP
+        - Pool contract will follow burn/lock and mint/unlock mechanism
+        - Burning on source chain and minting on destination chain
+        - Each token will be linked to a pool, which will manage token transfers and ensure proper handling of assets across chains.
+    3. Deploy Vault contract (Vault contract)
+        - As constructor params pass the address of token contract
+    4. Claiming Mint and Burn Roles (grantMintAndBurnRole function):
+        - Vault and Pool contract will be assigned the mintAndBurn role
+        - allowing your token pools to control how tokens are minted and burned during cross-chain transfers
+    5. Claiming and Accepting the Admin Role
+        - After this, CCIP will handle all things
+        - call the -> 'RegistryModuleOwnerCustom' contract's 'registerAdminViaOwner' function, to enable your token in CCIP
+        - After this call -> 'TokenAdminRegistry' contract's 'acceptAdminRole' function to complete registration process.
+    6. Linking Tokens to Pools
+        - call the 'TokenAdminRegistry' contract's 'setPool' function to associate each token with its respective token pool.
+    7. Configuring Token Pools (configureTokenPool)
+        - You will call the 'applyChainUpdates' function on your token pools to configure each pool
+        - to set cross-chain transfer parameters, such as token pool rate limits and enabled destination chains.
+    8. Mint tokens (Vault contract)
+        - Call depositCollateral function to borrow some tokens
+    
+    9. Bridge tokens (bridgeToken function)
+        - In this function, we will use CCIP 'setFee' and 'ccipSend' function
+        - This function will bridge tokens from source(eth-sepolia) to destination(base-sepolia)
+        - this function is responsible to bridge tokens cross-chain!!!!
+ */
+
+
 contract CrossChainTest is Test {
     address owner = makeAddr("owner");
     address user = makeAddr("user");
@@ -63,6 +106,7 @@ contract CrossChainTest is Test {
         baseSepoliaFork = vm.createFork(BASE_SEPOLIA_RPC_URL);
 
 
+        // INTIALIZE CCIPLocalSimulatorFork contract instance for testing
         ccipLocalSimulatorFork = new CCIPLocalSimulatorFork();
         vm.makePersistent(address(ccipLocalSimulatorFork));
 
@@ -182,7 +226,22 @@ contract CrossChainTest is Test {
         vm.stopPrank();
     }
 
-    // CONFIGURE TOKEN POOL FUNCTION
+
+
+    ////////////////////////////// 
+    // CONFIGURE TOKEN POOL FUNCTION //
+    ////////////////////////////// 
+    /**
+        @notice configureTokenPool function
+        @param forkId Chain network forkId
+        @param localPool EthSepolia Pool contract 
+        @param remotePool baseSepolia Pool contract
+        @param remoteToken baseSepolia token contract
+        @param remoteNetworkDetail baseSepoia network details
+        @notice You will call the 'applyChainUpdates' function on your token pools to configure each pool by setting cross-chain transfer parameters
+        @notice CCIP methods and function will handle the correct chainid, non-existent error, chainalready present error
+        @dev In this function we will set all imp. params for cross-chain transfering
+     */
     function configureTokenPool(
         uint256 forkId,
         RebaseTokenPool localPool,
@@ -225,6 +284,22 @@ contract CrossChainTest is Test {
     }
 
 
+
+    ////////////////////////////// 
+    // BRIDGE TOKEN FUNCTION //
+    ////////////////////////////// 
+    /**
+        @notice bridgeToken function
+        @param amountToBridge amounts to bridge from source to destination
+        @param localForkId ethsepolia chainid
+        @param remoteForkId baseSepolia chainid
+        @param localNetworkDetails ethsepolia network details
+        @param remoteNetworkDetails baseSepolia network details
+        @param localToken ethsepolia token contract
+        @param remoteToken baseSepolia token contract
+        @notice In this function we will use 'ccipSend' method to transfer token from source to destination
+        @notice this function is responsible for bridging token from sourec and destination and vice-versa
+     */
     function bridgeToken(
         uint256 amountToBridge,
         uint256 localForkId,
@@ -299,6 +374,17 @@ contract CrossChainTest is Test {
         assert(afterBridgingBalance_BaseSepolia == initialBalance_BaseSepolia + amountToBridge);
     }
 
+
+
+    /**
+        @notice test_BridgeTokens function
+        @dev The following test will follow the exact flow whenever user will interact with protocol:
+            a. Configure token pool on eth-sepolia and base-sepolia
+            b. After configuring, deposit collateral and mint/borrow token
+            c. Check initial balance before bridging
+            d. Call bridgeToken() -> To bridge token cross-chain
+            e. Check userBalance after bridging token
+     */
     function test_BridgeTokens() public {
         // CONFIGURE TOKEN POOL ON SEPOLIA
         configureTokenPool(ethSepoliaFork, ethSepoliaPool, baseSepoliaPool, IRebaseToken(address(baseSepoliaToken)), baseSepoliaNetworkDetails);
@@ -324,6 +410,17 @@ contract CrossChainTest is Test {
         bridgeToken(amount, ethSepoliaFork, baseSepoliaFork, ethSepoliaNetworkDetails, baseSepoliaNetworkDetails, ethSepoliaToken, baseSepoliaToken);
     }
 
+
+    /**
+        @notice test_BridgeTokens function
+        @dev The following test will follow the exact flow whenever user will interact with protocol:
+            a. Configure token pool on eth-sepolia and base-sepolia
+            b. After configuring, deposit collateral and mint/borrow token
+            c. Check initial balance before bridging
+            d. Call bridgeToken() -> To bridge token cross-chain
+            e. Check userBalance after bridging token
+            f. And, vice-versa!!!
+     */
     function test_BridgeTokenBack() public {
         // configure token pool on sepolia
         configureTokenPool(ethSepoliaFork, ethSepoliaPool, baseSepoliaPool, IRebaseToken(address(baseSepoliaToken)), baseSepoliaNetworkDetails);

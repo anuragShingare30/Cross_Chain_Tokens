@@ -11,18 +11,16 @@ import {Pool} from "lib/ccip/contracts/src/v0.8/ccip/libraries/Pool.sol";
 /**
  * @title RebaseTokenPool contract
  * @author anurag shingare
- * @notice Pool contract will be responsible for minting and burning token during transfers cross-chain
  * @dev Here we will follow the burnAndMint mechanism
  * @dev BurnToken -> source chain      MintToken -> destination chain
- * @notice CCIP will take care of invalidToken, rate limit, correct chain-id and malicious node that is affected
- * @notice By Using ccipSend() we can bridge token
- * @dev We will follow the below flow for transffering token cross-chain:
-    a. Deploy an ERC20 compatible token contract
-    b. Deploying Token Pools
-    c. Claiming Mint and Burn Roles
-    d. Linking Tokens to Pools
-    e. Minting Tokens
-    f. Transferring Tokens cross chain
+ * @dev Pool contract will follow the below mechanism for bridging tokens:
+    a. Source chain -> Eth-sepolia  &&  Destination chain -> Base-sepolia
+    b. the TokenPool on the source blockchain will lock or burn the underlying shares rather than a fixed amount of tokens.
+    c. On the destination blockchain, TokenPool should accurately convert the number of underlying shares to tokens using the current share-to-token ratio(If any).
+    d. The calculated token amount should then be minted on the destination blockchain!!!
+ * @dev We will be using CCIP TokenPool contract to setPool and LinkPool with tokens
+ * @dev CCIP pool contract will take care of checking for correct chain-id, detecting malicious node affected and Non-existent chain and Chain already exist error
+ * @dev CCIP consist of DON and RMN to handle cross-chain bridging in decentralize way!!!
  */
 
 contract RebaseTokenPool is TokenPool {
