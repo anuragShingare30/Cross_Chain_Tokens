@@ -55,6 +55,11 @@ import {Client} from "lib/ccip/contracts/src/v0.8/ccip/libraries/Client.sol";
         - In this function, we will use CCIP 'setFee' and 'ccipSend' function
         - This function will bridge tokens from source(eth-sepolia) to destination(base-sepolia)
         - this function is responsible to bridge tokens cross-chain!!!!
+    @notice The backend workflow of protocol will be:
+        1. Setting up CCIP for bridging
+        2. Configuring token pool on each chain(set pool, link pool)
+        3. Minting rebase token from vault contract
+        4. Bridging tokens from source to destination (Using CCIP only) 
  */
 
 
@@ -384,6 +389,12 @@ contract CrossChainTest is Test {
             c. Check initial balance before bridging
             d. Call bridgeToken() -> To bridge token cross-chain
             e. Check userBalance after bridging token
+        @notice This function is important for us to understand the flow of complete protocol
+        @notice Here, we need to understand that cross-chain bridging is perform by us using either deploy script or this test function
+        @notice this test function completely explains how will protocol work in backend
+            a. Configuring token pool on both chain
+            b. Deploying Eth to borrow token from vault contract
+            c. Bridging tokens cross-chain
      */
     function test_BridgeTokens() public {
         // CONFIGURE TOKEN POOL ON SEPOLIA
