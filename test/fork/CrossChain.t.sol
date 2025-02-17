@@ -58,7 +58,7 @@ import {Client} from "lib/ccip/contracts/src/v0.8/ccip/libraries/Client.sol";
     @notice The backend workflow of protocol will be:
         1. Setting up CCIP for bridging
         2. Configuring token pool on each chain(set pool, link pool)
-        3. Minting rebase token from vault contract
+        3. Minting/Borrowing rebase token from vault contract
         4. Bridging tokens from source to destination (Using CCIP only) 
  */
 
@@ -396,6 +396,11 @@ contract CrossChainTest is Test {
             b. Deploying Eth to borrow token from vault contract
             c. Bridging tokens cross-chain
      */
+
+        // userBalance_BeforeBridging__EthSepolia -> 1e18
+        // userBalance_AfterBridging__EthSepolia -> 0
+        // userBalance_BeforeBridging__BaseSepolia -> 0
+        // userBalance_BeforeBridging__Sepolia -> 1e18
     function test_BridgeTokens() public {
         // CONFIGURE TOKEN POOL ON SEPOLIA
         configureTokenPool(ethSepoliaFork, ethSepoliaPool, baseSepoliaPool, IRebaseToken(address(baseSepoliaToken)), baseSepoliaNetworkDetails);

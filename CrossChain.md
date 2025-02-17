@@ -69,7 +69,7 @@
 - Source chain and Destination Chain contracts
 
 
-#### Bridging mechanism
+#### Different Bridging mechanism
 
 1. **Burn and Mint bridging**:
    - Tokens are burned on the source blockchain
@@ -97,7 +97,7 @@
 
 
 
-### Cross Chain Token(CCT) Standard (defines flow)
+### Cross Chain Token(CCT) Standard (defines flow of contract)
 
 - **A `Cross-Chain Token Standard` is a set of rules that ensures tokens can move between different blockchains safely and efficiently by leveraging the chainlink CCIP for security**
 - `Cross-chain token standards` are just set of rules and instructions that should be followed during transferring tokens cross chain.
@@ -150,31 +150,53 @@
 
 
 
-#### Transferring tokens cross-chain!!!
+#### Transferring/Bridging tokens cross-chain using CCIP
 
-- Here, we will allow our token on CCIP for transferring cross-chain
-- We will follow `burn and mint mechanism` for transferring
-- Burn token -> source chain
-- Mint token -> destination chain
+- `CCIP` will specifically look for bridging tokens cross-chain
+- **We will bridge rebase token from eth-sepolia to base-sepolia**
+- will follow the below flow for bridging:
 
 
-1. **Deploying Tokens**:
-   - Deploy your ERC20 compatible token on 1st chain
+
+1. **Deploy Rebase Tokens**:
+   - `RebaseToken Contract` is ERC20 compatible contract
+   - Deploy rebase token on eth-sepolia and base-sepolia
+   - Contains *mint,burn,grantMintAndBurnRole function*
 
 2. **Deploying Token Pools**:
-   - Once your tokens are deployed, you will deploy Pool contract on 1st and 2nd chain
-   - Each token will be linked to a pool, which will manage token transfers and ensure proper handling of assets across chains.
+   - Deploy `RebaseTokenPool contract` on both eth-sepolia and base-sepolia chain
+   - These pools are essential for minting and burning tokens during cross-chain bridging.
+   - Each token will be linked to a pool, which will manage token transfers
+   - Contains *lockOrBurn and UnlockOrMint function*
 
-3. **Claiming Mint and Burn Roles**:
+3. **Deploy Vault contract**:
+   - Deploy vault contract
+   - Contains *depositCollateral,redeemCollateral functions*
 
-4. **Linking Tokens to Pools**:
 
-5. **Minting Tokens**:
-   - Mint the token on 1st chain
-   - later be used to test cross-chain transfers
+4. **Claiming Mint and Burn Roles**:
+   - Grant mint and burn role to `Vault and Pool contract`
 
-6. **Transferring Tokens**:
-   - Finally transfer the minted token from 1st chain to 2nd chain using `CCIP`
+5. **Claiming and Accepting the Admin Role**:
+   -  `registerAdminViaOwner function` to register our EOA as the token admin and register our token on `CCIP`
+   -  `acceptAdminRole function` to complete the registration process.
+
+
+6. **Linking Tokens to Pools**:
+   - `setPool function` to associate each token with its respective token pool.
+
+7. **Configuring Token Pools**:
+   - `applyChainUpdates function` on your token pools to configure each pool by setting cross-chain transfer parameters to enable chain
+
+8. **Deploy token on vault**:
+   - On Vault contract -> call depositCollateral to borrow rebase token
+   - This will be done before bridging.
+   - We will bridge the rebase token from eth-sepolia to base-sepolia
+
+
+9. **Transferring/Bridging Tokens**:
+   - Will use `EVM2AnyMessage(), getFee(), ccipSend() function` to bridge token cross-chain
+   - `CCIP` will take care of bridging token
 
 
 
