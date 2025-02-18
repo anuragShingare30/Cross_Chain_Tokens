@@ -11,7 +11,12 @@ import "src/interfaces/IRebaseToken.sol";
  * @title Testing Rebase token and Vault contract together
  * @author anurag shingare
  * @dev The flow of protocol will be as:
-    
+    a. Owner of contract will set some interest rate
+    b. User will deposit collateral(ETH) to mint/borrow Rebasetoken(RBT)
+    c. User can redeem tokens for ETH
+    d. Protocol will automatically check and mint the accrued interest rate for users deposit
+    e. Users can bridge tokens from Eth-Sepolia to Base-Sepolia (For now)
+    f. Protocol will automatically interact with Pool and Token contract to maintain the supply of token
  */
 
 contract RebaseTokenTest is Test{
