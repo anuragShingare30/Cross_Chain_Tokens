@@ -9,8 +9,8 @@
 2. **Rebase tokens**:
     - This are type of crypto-currency. Also called as Elastic token.
     - have a changing circulating supply
-    - either growing larger (more coins being created/minted)
-    - Or, decreasing (coins get destroyed or 'burnt')
+    - either growing larger price (more coins being created/minted)
+    - Or, decreasing price (coins get destroyed or 'burnt')
     - can `increase or decrease their supply` automatically!!!
 
 
